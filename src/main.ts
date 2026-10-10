@@ -1,7 +1,8 @@
 import Chart from 'chart.js/auto';
+import {differenceFromBaseline} from './price-baseline';
 import './style.css';
 type Change={metric:'lowest'|'zPrice';old:number;new:number;difference:number;differenceForTwoEstimate:number;previousAt:string};
-type Entry={id:string;date:string;queriedAt:string;status:'success'|'failed'|'departed'|'not_found';lowest:number|null;zPrice:number|null;inventory:string;departureAt:string|null;taxBasis:string;source:{name:string;url:string;kind:string;note?:string};changes:Change[];error?:{message:string}};
+type Entry={id:string;date:string;queriedAt:string;status:'success'|'failed'|'departed'|'not_found';lowest:number|null;zPrice:number|null;inventory:string;departureAt:string|null;taxBasis:string;priceScope:string;source:{name:string;url:string;kind:string;note?:string};changes:Change[];error?:{message:string}};
 type Data={schemaVersion:number;config:{focusDate:string;focusDeparture:string};dates:string[];generatedAt:string;records:Entry[];lastScheduledRunAt?:string|null};
 const app=document.querySelector<HTMLDivElement>('#app')!;
 let data:Data,selected='2026-10-20',source='automatic',before='',chart:Chart|undefined;
@@ -13,6 +14,12 @@ const labels={success:'查询成功',failed:'查询失败',departed:'已过起�
 function rows(date?:string){return data.records.filter(r=>(!date||r.date===date)&&r.source.kind===source&&(!before||Date.parse(r.queriedAt)<=Date.parse(before))).sort((a,b)=>Date.parse(a.queriedAt)-Date.parse(b.queriedAt));}
 function last(date:string,success=false){return rows(date).filter(r=>!success||r.status==='success').at(-1);}
 function delta(r:Entry|undefined,metric:'lowest'|'zPrice'){const c=r?.changes.find(c=>c.metric===metric);return !c?'<span class="muted">—</span>':'<span class="'+(c.difference<0?'down':'up')+'">'+(c.difference>0?'+':'−')+'¥'+Math.abs(c.difference)+'</span>';}
+function baselineDelta(r:Entry|undefined,metric:'lowest'|'zPrice'){
+ const n=differenceFromBaseline(r,metric);
+ if(n===null)return '<span class="muted">—</span>';
+ if(n===0)return '<span class="muted">¥0</span>';
+ return '<span class="'+(n<0?'down':'up')+'">'+(n>0?'+':'−')+'¥'+Math.abs(n)+'</span>';
+}
 function render(){
  chart?.destroy();
  const f=last(data.config.focusDate,true),attempt=last(data.config.focusDate),now=before?Date.parse(before):Date.now(),price=f?.zPrice;
@@ -32,10 +39,10 @@ function render(){
  ${attempt&&attempt.status!=='success'?`<p class="error-note">${labels[attempt.status]} · ${time(attempt.queriedAt)}：${esc(attempt.error?.message||'')}。以上价格为最近成功记录，不代表本轮实时价格。</p>`:''}</section>
  <div class="controls"><label>数据来源<select id="source"><option value="automatic" ${source==='automatic'?'selected':''}>官网自动查询</option><option value="manual" ${source==='manual'?'selected':''}>Work 手动导入</option></select></label><label>查看时间<select id="snapshot"><option value="">最近记录</option>${[...new Set(data.records.map(r=>r.queriedAt))].sort().reverse().map(t=>`<option value="${esc(t)}" ${before===t?'selected':''}>${time(t)}</option>`).join('')}</select></label></div>
  ${before?'<p class="history-banner">正在查看过去的快照，价格截至所选时间。</p>':''}
- <section class="card dates-card"><div class="section-heading"><div><p class="eyebrow">灵活一点，好价多一点</p><h2>逐日票价</h2></div><span class="muted">10.10 — 10.21</span></div><p class="table-note">每人 / 元 · 变化对比同来源、同税费口径的上次成功记录</p><div class="table-wrap"><table><thead><tr><th>出发日期</th><th>最低价</th><th>Z 舱</th><th>变化<br><small>最低 / Z</small></th></tr></thead><tbody>${data.dates.map(d=>{
+ <section class="card dates-card"><div class="section-heading"><div><p class="eyebrow">灵活一点，好价多一点</p><h2>逐日票价</h2></div><span class="muted">10.10 — 10.21</span></div><p class="table-note">每人 / 元 · 固定对比 10/10 截图价格（23:19–23:21）；— 表示无法比较</p><div class="table-wrap"><table><thead><tr><th>出发日期</th><th>最低价</th><th>Z 舱</th><th>较基准<br><small>最低 / Z</small></th></tr></thead><tbody>${data.dates.map(d=>{
  const r=last(d,true),a=last(d),past=now>=Date.parse(r?.departureAt||d+'T23:59:59+08:00'),old=r&&now-Date.parse(r.queriedAt)>(d===data.config.focusDate?35:90)*60000;
  const state=before?'历史快照':past?'已过起飞时间':a?.status==='failed'?'查询失败 · 保留旧记录':a?.status==='not_found'?'未显示航班':r?old?'记录待更新':time(r.queriedAt):'未查询';
- return `<tr class="${d===data.config.focusDate?'focus-row':''} ${d===selected?'selected':''}"><td><button class="date-button" data-date="${d}" aria-pressed="${d===selected}"><b>${d.slice(5).replace('-','.')}</b><span>${weekday(d)}${d===data.config.focusDate?' · 关注':''}</span></button><small class="row-status">${state}</small></td><td>${money(r?.lowest)}</td><td>${money(r?.zPrice)}</td><td>${delta(r,'lowest')} / ${delta(r,'zPrice')}</td></tr>`;
+ return `<tr class="${d===data.config.focusDate?'focus-row':''} ${d===selected?'selected':''}"><td><button class="date-button" data-date="${d}" aria-pressed="${d===selected}"><b>${d.slice(5).replace('-','.')}</b><span>${weekday(d)}${d===data.config.focusDate?' · 关注':''}</span></button><small class="row-status">${state}</small></td><td>${money(r?.lowest)}</td><td>${money(r?.zPrice)}</td><td>${baselineDelta(r,'lowest')} / ${baselineDelta(r,'zPrice')}</td></tr>`;
  }).join('')}</tbody></table></div></section>
  <section class="card chart-card"><div class="section-heading"><div><p class="eyebrow">每一次查价，都留个记录</p><h2>${selected.slice(5).replace('-',' 月 ')} 日价格走势</h2></div><select id="date-select" aria-label="历史走势日期">${data.dates.map(d=>`<option value="${d}" ${d===selected?'selected':''}>${d.slice(5)} ${weekday(d)}</option>`).join('')}</select></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="最低价和Z舱历史折线图"></canvas></div><p id="chart-note" class="footnote"></p></section>
  <section class="card log-card"><div class="section-heading"><h2>查询记录</h2><span class="muted">${selected}</span></div>${rows(selected).slice().reverse().slice(0,40).map(r=>`<details><summary><span class="log-dot ${r.status}"></span><span>${time(r.queriedAt)}</span><b>${labels[r.status]}</b><span>${r.status==='success'?money(r.zPrice):'—'}</span></summary><p>${esc(r.source.name)} · ${r.source.kind==='manual'?'手动导入':'自动查询'} · ${esc(r.inventory)}</p><p>最低价 ${money(r.lowest)} / Z 舱 ${money(r.zPrice)} · 税费 ${r.taxBasis==='unknown'?'未确认':r.taxBasis==='included'?'含税':'不含税'}</p>${r.error?`<p class="error-note">${esc(r.error.message)}</p>`:''}${r.source.note?`<p>${esc(r.source.note)}</p>`:''}<a href="${esc(r.source.url)}" target="_blank" rel="noopener noreferrer">原始查询来源 ↗</a></details>`).join('')||'<p class="empty">还没有这个日期的记录。失败记录也会如实保留。</p>'}</section>
