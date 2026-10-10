@@ -13,10 +13,10 @@
 
 ## 尚未验证 / 启用
 
-- 本人已授权发送一条真实微信测试，但仓库尚无 `PUSHPLUS_TOKEN`，因此没有调用真实发送接口。
-- `PUSHPLUS_ENABLED`、`PUSHPLUS_TEST_CONFIRMED` 均未设置，自动发送保持关闭。待安全添加Secret、完成授权测试并确认微信实际收到后再启用。
+- 本人已安全添加 `PUSHPLUS_TOKEN`。已按单条授权执行 [真实微信测试](https://github.com/Flora614/fly/actions/runs/38020383783)：2026-10-10 11:24:35 Asia/Shanghai，PushPlus API已受理，状态 `accepted`，尝试1次，无请求错误。Token仅由GitHub Secret注入发送进程，未输出到聊天、代码、通知状态、网页或日志。
+- 微信实际接收与消息内网页打开仍待本人确认；API受理不代替本人接收确认。`PUSHPLUS_ENABLED`、`PUSHPLUS_TEST_CONFIRMED` 均未设置，自动发送保持关闭。
 - 尚未观察到真实报价变化，真实变化提醒需等待实际变化；隔离测试不代替线上真实变化证明。
-- GitHub自然定时执行可能延迟。此次云端回归是手动触发，不冒充定时投递验证。
+- [首轮自然定时运行](https://github.com/Flora614/fly/actions/runs/38020214769) 已成功完成采集、历史保存和部署；20日官网查询时间11:21:30 Asia/Shanghai，最低价和Z舱仍为600元/人。该轮执行时微信自动开关关闭，没有发送自动消息。自然定时查价已经验证，自动微信投递尚未开启或验证；GitHub调度仍可能延迟。
 - `accepted` 仅为PushPlus受理；最终微信异步投递的自动状态查询未接入，详见 [通知说明与鉴权边界](pushplus.md)。
 
 网页历史与原查价自动开关保持原状。测试完成前不会偷偷打开真实自动发送。
