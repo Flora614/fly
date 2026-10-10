@@ -1,0 +1,34 @@
+import {chromium,devices} from 'playwright';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const url=process.env.QA_URL||'http://127.0.0.1:4173/';
+const data=JSON.parse(await readFile('public/data/index.json','utf8'));
+const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
+const context=await browser.newContext({...devices['iPhone 13'],locale:'zh-CN',timezoneId:'Asia/Shanghai'});
+const page=await context.newPage(),errors=[],checks=[];
+page.on('pageerror',e=>errors.push(e.message));
+await mkdir('evidence/qa',{recursive:true});
+try{
+ await page.goto(url,{waitUntil:'domcontentloaded'});await page.locator('.hero-price').waitFor();
+ assert.equal(await page.locator('tbody tr').count(),12);checks.push('12 dates rendered');
+ const expected=data.records.filter(r=>r.date==='2026-10-20'&&r.status==='success'&&r.source.kind==='automatic').at(-1)?.zPrice;
+ assert.ok((await page.locator('.hero-price').innerText()).includes(String(expected)));checks.push('Hero matches saved real quote');
+ assert.ok(await page.locator('.footnote').first().innerText().then(t=>t.includes('估算')&&t.includes('税费')));checks.push('Estimate and tax scope visible');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));checks.push('No horizontal overflow at 390px');
+ await page.screenshot({path:'evidence/qa/mobile.png',fullPage:true});
+ await page.locator('#date-select').selectOption('2026-10-14');assert.ok((await page.locator('.chart-card h2').innerText()).includes('14'));checks.push('History date switch');
+ const oldest=data.records.map(r=>r.queriedAt).sort()[0];await page.locator('#snapshot').selectOption(oldest);assert.ok(await page.locator('.history-banner').isVisible());checks.push('Historical cutoff clearly labelled');
+ await page.locator('#snapshot').selectOption('');await page.locator('#source').selectOption('manual');assert.equal((await page.locator('.hero-price').innerText()).replace(/\s/g,''),'—/人');checks.push('Manual source isolated from automatic data');
+ await page.locator('#source').selectOption('automatic');
+ const altered=structuredClone(data);
+ altered.records.push({date:'2026-10-20',flight:'MF8455',queriedAt:new Date().toISOString(),status:'failed',lowest:null,zPrice:null,inventory:'unknown',departureAt:null,taxBasis:'unknown',source:{name:'厦航官网',url:'https://www.xiamenair.com',kind:'automatic'},changes:[],error:{message:'QA injected page failure; not a real quote'}});
+ await page.route('**/data/index.json*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(altered)}));
+ await page.locator('#refresh').click();await page.getByText('查询失败',{exact:true}).first().waitFor();
+ assert.ok((await page.locator('.hero-price').innerText()).includes(String(expected)));assert.ok((await page.locator('.error-note').first().innerText()).includes('不代表本轮实时价格'));checks.push('Injected failure preserves last good quote with visible stale notice');
+ await page.screenshot({path:'evidence/qa/failure-state.png',fullPage:true});
+ await page.unroute('**/data/index.json*');await page.locator('#refresh').click();await page.locator('.hero-price').waitFor();
+ await context.close();const desktop=await browser.newPage({viewport:{width:1440,height:1000}});await desktop.goto(url);await desktop.locator('.hero-price').waitFor();await desktop.screenshot({path:'evidence/qa/desktop.png',fullPage:true});checks.push('Desktop layout rendered');
+ assert.deepEqual(errors,[]);checks.push('No browser JS errors');
+ await writeFile('evidence/qa/results.json',JSON.stringify({at:new Date().toISOString(),url,checks,errors,note:'Failure state was injected only in the test browser; no synthetic quote was saved.'},null,2));
+ console.log(JSON.stringify({checks,errors},null,2));
+}finally{await browser.close();}

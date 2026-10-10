@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+private/
+evidence/
+.openai/
+playwright-report/
+test-results/

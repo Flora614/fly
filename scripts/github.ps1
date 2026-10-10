@@ -1,0 +1,20 @@
+param([ValidateSet('Status','EnablePages','Dispatch','Runs','Run','Pages','Logs')][string]$Action='Status',[string]$RunId)
+$ErrorActionPreference='Stop'
+$env:GIT_TERMINAL_PROMPT='0'
+$env:GCM_INTERACTIVE='never'
+$credentialLines = "protocol=https`nhost=github.com`n`n" | git credential fill 2>$null
+if($LASTEXITCODE -ne 0){throw 'No usable local GitHub credential. No token was printed.'}
+$credentialMap=@{}
+foreach($line in $credentialLines){$pair=$line -split '=',2;if($pair.Length -eq 2){$credentialMap[$pair[0]]=$pair[1]}}
+if(-not $credentialMap.password){throw 'No usable GitHub credential.'}
+$headers=@{Authorization="Bearer $($credentialMap.password)";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='mf8455-monitor'}
+$baseUri='https://api.github.com/repos/Flora614/fly'
+switch($Action){
+ 'Status'{$r=Invoke-RestMethod -Uri $baseUri -Headers $headers; [pscustomobject]@{name=$r.full_name;private=$r.private;defaultBranch=$r.default_branch;permissions=$r.permissions}|ConvertTo-Json}
+ 'EnablePages'{try{$r=Invoke-RestMethod -Uri "$baseUri/pages" -Headers $headers; if($r.build_type -ne 'workflow'){Invoke-RestMethod -Method Put -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}}catch{if([int]$_.Exception.Response.StatusCode -eq 404){Invoke-RestMethod -Method Post -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}else{throw}}; 'GitHub Pages enabled for Actions'}
+ 'Dispatch'{Invoke-RestMethod -Method Post -Uri "$baseUri/actions/workflows/monitor.yml/dispatches" -Headers $headers -ContentType 'application/json' -Body '{"ref":"main","inputs":{"mode":"full"}}'|Out-Null; 'Full live collection dispatched'}
+ 'Runs'{$r=Invoke-RestMethod -Uri "$baseUri/actions/runs?per_page=5" -Headers $headers;$r.workflow_runs|Select-Object id,event,status,conclusion,html_url,created_at|ConvertTo-Json}
+ 'Run'{if($RunId -notmatch '^\d+$'){throw 'Numeric run id required'};$r=Invoke-RestMethod -Uri "$baseUri/actions/runs/$RunId/jobs" -Headers $headers;$r.jobs|Select-Object name,status,conclusion,steps|ConvertTo-Json -Depth 7}
+ 'Pages'{$r=Invoke-RestMethod -Uri "$baseUri/pages" -Headers $headers;$r|Select-Object html_url,status,build_type|ConvertTo-Json}
+ 'Logs'{if($RunId -notmatch '^\d+$'){throw 'Numeric run id required'};[IO.Directory]::CreateDirectory((Join-Path $PSScriptRoot '../private'))|Out-Null;Invoke-WebRequest -Uri "$baseUri/actions/runs/$RunId/logs" -Headers $headers -OutFile (Join-Path $PSScriptRoot "../private/run-$RunId.zip");'Saved private workflow log archive'}
+}
