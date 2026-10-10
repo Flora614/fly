@@ -1,0 +1,93 @@
+{
+  "roundId": "47eb821e-b543-4a7c-9c06-8db3c8bc4c87",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "ada3dd5d-bd84-45c5-baa6-6a78cacc5a11",
+  "createdAt": "2026-10-10T16:20:06.215Z",
+  "records": [
+    {
+      "date": "2026-10-11",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-10T16:19:58.186Z",
+      "status": "success",
+      "lowest": 880,
+      "zPrice": null,
+      "departureAt": "2026-10-11T16:35:00+08:00",
+      "arrivalTime": "19:45",
+      "inventory": "未展示Z舱，不推断为售罄",
+      "cabins": [
+        {
+          "code": "V",
+          "price": 1140,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "T",
+          "price": 880,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "Q",
+          "price": 1350,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "N",
+          "price": 1460,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "K",
+          "price": 1560,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "L",
+          "price": 1670,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "M",
+          "price": 1770,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "B",
+          "price": 1980,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "H",
+          "price": 2100,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "Y",
+          "price": 2110,
+          "inventory": "仅剩3张"
+        }
+      ],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-11&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": null,
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "bf5ece8d-1590-4be5-89a6-c7fb45568d7d",
+      "changes": []
+    }
+  ]
+}
