@@ -1,0 +1,35 @@
+name: PushPlus manual WeChat test
+on:
+  workflow_dispatch:
+    inputs:
+      authorize_send:
+        description: 'I authorize ONE real WeChat test notification (does not enable automatic sending)'
+        type: boolean
+        required: true
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: mf8455-monitor-pages
+  cancel-in-progress: false
+jobs:
+  test-wechat:
+    if: inputs.authorize_send == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Configure notification state persistence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Send one explicitly authorized test
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSHPLUS_TEST_AUTHORIZED: ${{ inputs.authorize_send }}
+        run: node scripts/notify.mjs --test

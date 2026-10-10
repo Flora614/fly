@@ -69,6 +69,7 @@ jobs:
         if: steps.window.outputs.active == 'true' && github.event_name != 'push'
         run: npx playwright install --with-deps chromium
       - name: Query official public fares
+        id: collect
         if: steps.window.outputs.active == 'true' && github.event_name != 'push'
         env:
           SAVE_EVIDENCE: '1'
@@ -89,6 +90,16 @@ jobs:
             git commit -m "Record official flight fare observations"
             git push origin HEAD:main
           fi
+      - name: Notify focus fare (isolated from collection and Pages)
+        if: steps.window.outputs.active == 'true' && github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSHPLUS_ENABLED: ${{ vars.PUSHPLUS_ENABLED }}
+          PUSHPLUS_TEST_CONFIRMED: ${{ vars.PUSHPLUS_TEST_CONFIRMED }}
+          MONITOR_ROUND_ID: ${{ steps.collect.outputs.round_id }}
+          MONITOR_MODE: ${{ steps.collect.outputs.mode }}
+        run: node scripts/notify.mjs
       - name: Save diagnostic evidence
         if: always() && github.event_name != 'push'
         uses: actions/upload-artifact@v4

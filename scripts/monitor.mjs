@@ -2,6 +2,7 @@ import {config,dates,queryUrl} from '../config.mjs';
 import {appendSnapshot,loadRecords,shouldQuery,exportPublic} from '../lib/store.mjs';
 import {XiamenAirProvider} from '../lib/providers/xiamenair.mjs';
 import {randomUUID} from 'node:crypto';
+import {appendFile} from 'node:fs/promises';
 const arg=process.argv.find(a=>a.startsWith('--date=')),mode=process.argv.includes('--focus')?'focus':'full';
 const selected=arg?[arg.slice(7)]:mode==='focus'?[config.focusDate]:[config.focusDate,...dates.filter(d=>d!==config.focusDate)];
 if(selected.some(d=>!dates.includes(d)))throw Error('Date outside configured range');
@@ -10,6 +11,7 @@ if(!pending.length){console.log('No flights remain to query. History retained.')
 const Provider=process.env.PRICE_PROVIDER_MODULE?(await import(process.env.PRICE_PROVIDER_MODULE)).default:XiamenAirProvider;
 const provider=new Provider(),records=[];
 const roundId=randomUUID(),saved=[];
+if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`round_id=${roundId}\nmode=${mode}\n`);
 async function save(r){const snapshot=await appendSnapshot([r],'.',{roundId,mode,transport:'playwright',runner:process.env.GITHUB_ACTIONS==='true'?'github-actions':'local',trigger:process.env.GITHUB_EVENT_NAME||'local',pushesEnabled:false});saved.push(snapshot);}
 try{
  await provider.init();
