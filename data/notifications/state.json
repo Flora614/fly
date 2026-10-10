@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "messages": [
+    {
+      "key": "test:38020383783",
+      "kind": "test",
+      "roundId": null,
+      "quoteAt": "2026-10-10T03:21:30.631Z",
+      "payload": {
+        "title": "【微信测试】10月20日 MF8455",
+        "content": "<h2>【微信测试】10月20日 MF8455</h2>\n<p>福州长乐 FOC → 成都天府 TFU · 2026-10-20</p>\n<p><strong>这是一条经授权的测试通知。显示已有历史报价，没有额外实时查价，也不会启用自动发送。</strong></p>\n<p>最低票价：<strong>¥600/人</strong><br>Z舱价格：<strong>¥600/人</strong><br>两人票价估算：最低 ¥1200；Z舱 ¥1200<br>库存：余票充足</p>\n<p>最新有效报价时间：2026/10/10 11:21:30（Asia/Shanghai）<br>来源：厦航官网</p>\n<p>与上次同来源、同税费口径有效报价相比：可比较价格未变化。缺失舱位不推断涨跌。</p>\n<p>税费口径：官网未明确。两人金额仅为票价乘2估算，未验证同时购买最终总价。</p>\n<p>消息生成时间：2026/10/10 11:24:35（Asia/Shanghai）</p><p><a href=\"https://flora614.github.io/fly/\">查看专属价格监控网页与历史记录</a></p>",
+        "template": "html",
+        "channel": "wechat"
+      },
+      "status": "sending",
+      "attempts": 1,
+      "createdAt": "2026-10-10T03:24:35.858Z",
+      "retryAt": null,
+      "error": null,
+      "updatedAt": "2026-10-10T03:24:35.858Z"
+    }
+  ]
+}
