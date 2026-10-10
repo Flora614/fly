@@ -1,4 +1,4 @@
-param([ValidateSet('Status','EnablePages','Dispatch','Runs','Run','Pages','Logs')][string]$Action='Status',[string]$RunId)
+param([ValidateSet('Status','EnablePages','Dispatch','Runs','Run','Pages','Logs','EnableMonitor','MonitorStatus')][string]$Action='Status',[string]$RunId)
 $ErrorActionPreference='Stop'
 $env:GIT_TERMINAL_PROMPT='0'
 $env:GCM_INTERACTIVE='never'
@@ -10,6 +10,8 @@ if(-not $credentialMap.password){throw 'No usable GitHub credential.'}
 $headers=@{Authorization="Bearer $($credentialMap.password)";Accept='application/vnd.github+json';'X-GitHub-Api-Version'='2022-11-28';'User-Agent'='mf8455-monitor'}
 $baseUri='https://api.github.com/repos/Flora614/fly'
 switch($Action){
+ 'EnableMonitor'{$body='{"name":"MONITOR_ENABLED","value":"true"}';try{Invoke-RestMethod -Method Patch -Uri "$baseUri/actions/variables/MONITOR_ENABLED" -Headers $headers -ContentType 'application/json' -Body $body|Out-Null}catch{if([int]$_.Exception.Response.StatusCode -eq 404){Invoke-RestMethod -Method Post -Uri "$baseUri/actions/variables" -Headers $headers -ContentType 'application/json' -Body $body|Out-Null}else{throw}};'Scheduled monitoring enabled'}
+ 'MonitorStatus'{$r=Invoke-RestMethod -Uri "$baseUri/actions/variables/MONITOR_ENABLED" -Headers $headers;$r|Select-Object name,value,updated_at|ConvertTo-Json}
  'Status'{$r=Invoke-RestMethod -Uri $baseUri -Headers $headers; [pscustomobject]@{name=$r.full_name;private=$r.private;defaultBranch=$r.default_branch;permissions=$r.permissions}|ConvertTo-Json}
  'EnablePages'{try{$r=Invoke-RestMethod -Uri "$baseUri/pages" -Headers $headers; if($r.build_type -ne 'workflow'){Invoke-RestMethod -Method Put -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}}catch{if([int]$_.Exception.Response.StatusCode -eq 404){Invoke-RestMethod -Method Post -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}else{throw}}; 'GitHub Pages enabled for Actions'}
  'Dispatch'{Invoke-RestMethod -Method Post -Uri "$baseUri/actions/workflows/monitor.yml/dispatches" -Headers $headers -ContentType 'application/json' -Body '{"ref":"main","inputs":{"mode":"full"}}'|Out-Null; 'Full live collection dispatched'}

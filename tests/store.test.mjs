@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {mkdtemp,readdir,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {writeFile} from 'node:fs/promises';
 import {appendSnapshot,loadRecords,detectChanges,shouldQuery,validateRecord} from '../lib/store.mjs';
 const quote=(p=600,t='2026-10-10T01:00:00Z')=>({date:'2026-10-20',flight:'MF8455',origin:'FOC',destination:'TFU',queriedAt:t,status:'success',lowest:p,zPrice:p,departureAt:'2026-10-20T16:35:00+08:00',inventory:'余票充足',source:{name:'厦航官网',url:'https://www.xiamenair.com/zh-cn/nticket.html',kind:'automatic'},priceScope:'official_display_per_adult',currency:'CNY',taxBasis:'unknown',partyPriceVerified:false});
 test('append-only snapshots retain identical successive real observations',async()=>{
@@ -41,4 +44,11 @@ test('reject wrong flight, route, fake failure prices, unsafe URL and no timezon
  assert.throws(()=>validateRecord({...quote(),status:'failed'}));
  assert.throws(()=>validateRecord({...quote(),source:{...quote().source,url:'javascript:alert(1)'}}));
  assert.throws(()=>validateRecord({...quote(),queriedAt:'2026-10-10T09:00:00'}));
+});
+test('manual CLI import preserves original timestamp and keeps provenance in isolated storage',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'mf8455-import-'));
+ const r=quote();r.source={kind:'manual',name:'Work QA fixture',url:'https://www.xiamenair.com/zh-cn/',note:'Isolated synthetic test, never a production quote',evidence:'test-only'};
+ const input=path.join(root,'input.json');await writeFile(input,JSON.stringify({records:[r]}));
+ execFileSync(process.execPath,[fileURLToPath(new URL('../scripts/import.mjs',import.meta.url)),input],{cwd:root,stdio:'pipe'});
+ const saved=await loadRecords(root);assert.equal(saved.length,1);assert.equal(saved[0].queriedAt,r.queriedAt);assert.equal(saved[0].source.kind,'manual');
 });

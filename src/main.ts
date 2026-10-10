@@ -17,13 +17,14 @@ function render(){
  chart?.destroy();
  const f=last(data.config.focusDate,true),attempt=last(data.config.focusDate),now=before?Date.parse(before):Date.now(),price=f?.zPrice;
  const ended=now>=Date.parse(f?.departureAt||data.config.focusDeparture),stale=f&&now-Date.parse(f.queriedAt)>35*60000;
- const c=f?.changes.find(c=>c.metric==='zPrice'),valid=rows().filter(r=>r.status==='success').at(-1);
+ const changeRecord=rows(data.config.focusDate).filter(r=>r.status==='success'&&r.changes.some(c=>c.metric==='zPrice')).at(-1);
+ const c=changeRecord?.changes.find(c=>c.metric==='zPrice'),valid=rows().filter(r=>r.status==='success').at(-1);
  const badge=before?'历史快照':ended?'已过起飞时间':attempt&&attempt.status!=='success'?labels[attempt.status]:f?stale?'记录待更新':'最近成功报价':'等待报价';
  app.innerHTML=`<main><header><a class="brand" href="./"><span class="brand-mark">↗</span>去成都</a><span class="tag">MF8455</span></header>
  <section class="intro"><p class="eyebrow">一段旅程，从好价格开始</p><h1>福州 <span class="arrow">→</span> 成都</h1><p class="route">长乐 FOC <span>直飞</span> 天府 TFU</p></section>
  <section class="hero card"><div class="between"><div><p class="eyebrow blue">重点关注</p><h2>10 月 20 日 <span>星期二</span></h2></div><span class="pill">${badge}</span></div>
  <div class="hero-price"><span>${money(price)}</span><small>/ 人</small></div><p class="fare-label">经济舱 Z 舱 · 官网展示票价</p>
- <div class="hero-grid"><div><span>两人票价估算</span><strong>${money(typeof price==='number'?price*2:null)}</strong></div><div><span>上次 Z 舱变化</span><strong>${delta(f,'zPrice')}</strong></div><div><span>Z 舱库存</span><strong class="inventory">${esc(f?.inventory||'未查询')}</strong></div></div>
+ <div class="hero-grid"><div><span>两人票价估算</span><strong>${money(typeof price==='number'?price*2:null)}</strong></div><div><span>上次 Z 舱变化</span><strong>${delta(changeRecord,'zPrice')}</strong></div><div><span>Z 舱库存</span><strong class="inventory">${esc(f?.inventory||'未查询')}</strong></div></div>
  ${c?`<p class="change-line">${money(c.old)} → ${money(c.new)}，两人估算差额 ${c.differenceForTwoEstimate>0?'+':'−'}¥${Math.abs(c.differenceForTwoEstimate)} · 对比 ${time(c.previousAt)}</p>`:''}
  ${typeof price==='number'&&price<550?'<p class="deal">低于 ¥550 / 人，值得留意这个价格。</p>':''}
  <p class="footnote">仅记录官网公开展示价格；两人合计为乘 2 估算，未验证同价购买。${f?.taxBasis==='included'?'来源标注含税。':f?.taxBasis==='excluded'?'来源标注不含税，税费另计。':'官网此页未明确税费口径，最终总价未确认。'}</p>
