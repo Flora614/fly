@@ -44,7 +44,7 @@ npm run dev
 
 正式启用前检查 Actions 手动全日期采集的结果。GitHub 数据中心可能与本机访问结果不同；本机成功不代表云端成功。云端挑战、超时和登录限制会保存为失败。未显示航班不推断为售罄。
 
-权限仅 contents:write（追加快照）、pages:write、id-token:write（Pages部署）。无需个人令牌或 PushPlus Secret 来运行采集。仓库自动 GITHUB_TOKEN 不出现在前端或数据中。
+采集和部署权限为 contents:write（追加快照）、pages:write、id-token:write（Pages部署）；日期检查任务另有 actions:write，仅用于全部日期结束后自动禁用本工作流，避免继续消耗调度资源。网页历史继续保留。无需个人令牌或 PushPlus Secret 来运行采集。仓库自动 GITHUB_TOKEN 不出现在前端或数据中。
 
 ## 替换数据源
 

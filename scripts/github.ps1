@@ -1,4 +1,4 @@
-param([ValidateSet('Status','EnablePages','Dispatch','Runs','Run','Pages','Logs','EnableMonitor','MonitorStatus')][string]$Action='Status',[string]$RunId)
+param([ValidateSet('Status','EnablePages','Dispatch','Runs','Run','Pages','Logs','EnableMonitor','MonitorStatus')][string]$Action='Status',[string]$RunId,[ValidateSet('full','focus')][string]$Mode='full')
 $ErrorActionPreference='Stop'
 $env:GIT_TERMINAL_PROMPT='0'
 $env:GCM_INTERACTIVE='never'
@@ -14,7 +14,7 @@ switch($Action){
  'MonitorStatus'{$r=Invoke-RestMethod -Uri "$baseUri/actions/variables/MONITOR_ENABLED" -Headers $headers;$r|Select-Object name,value,updated_at|ConvertTo-Json}
  'Status'{$r=Invoke-RestMethod -Uri $baseUri -Headers $headers; [pscustomobject]@{name=$r.full_name;private=$r.private;defaultBranch=$r.default_branch;permissions=$r.permissions}|ConvertTo-Json}
  'EnablePages'{try{$r=Invoke-RestMethod -Uri "$baseUri/pages" -Headers $headers; if($r.build_type -ne 'workflow'){Invoke-RestMethod -Method Put -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}}catch{if([int]$_.Exception.Response.StatusCode -eq 404){Invoke-RestMethod -Method Post -Uri "$baseUri/pages" -Headers $headers -ContentType 'application/json' -Body '{"build_type":"workflow"}'|Out-Null}else{throw}}; 'GitHub Pages enabled for Actions'}
- 'Dispatch'{Invoke-RestMethod -Method Post -Uri "$baseUri/actions/workflows/monitor.yml/dispatches" -Headers $headers -ContentType 'application/json' -Body '{"ref":"main","inputs":{"mode":"full"}}'|Out-Null; 'Full live collection dispatched'}
+ 'Dispatch'{$body=@{ref='main';inputs=@{mode=$Mode}}|ConvertTo-Json -Compress;Invoke-RestMethod -Method Post -Uri "$baseUri/actions/workflows/monitor.yml/dispatches" -Headers $headers -ContentType 'application/json' -Body $body|Out-Null; "$Mode live collection dispatched"}
  'Runs'{$r=Invoke-RestMethod -Uri "$baseUri/actions/runs?per_page=5" -Headers $headers;$r.workflow_runs|Select-Object id,event,status,conclusion,html_url,created_at|ConvertTo-Json}
  'Run'{if($RunId -notmatch '^\d+$'){throw 'Numeric run id required'};$r=Invoke-RestMethod -Uri "$baseUri/actions/runs/$RunId/jobs" -Headers $headers;$r.jobs|Select-Object name,status,conclusion,steps|ConvertTo-Json -Depth 7}
  'Pages'{$r=Invoke-RestMethod -Uri "$baseUri/pages" -Headers $headers;$r|Select-Object html_url,status,build_type|ConvertTo-Json}
