@@ -6,7 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {appendSnapshot} from '../lib/store.mjs';
-import {planNotification,processNotification,sendPushPlus,hourKey,PAGE_URL} from '../lib/pushplus.mjs';
+import {planNotification,processNotification,sendPushPlus,hourKey,PAGE_URL,verifyPublishedNotification} from '../lib/pushplus.mjs';
 
 // Synthetic fixtures stay in isolated temporary storage; no real WeChat calls.
 const now=new Date('2026-10-10T03:30:00Z');
@@ -120,7 +120,7 @@ test('automatic CLI respects all gates and preserves history when notification t
  await appendSnapshot([quote()],root,{roundId:'r1'});
  await appendSnapshot([{...quote(null,'2026-10-10T03:15:00Z','r2'),status:'failed'}],root,{roundId:'r2'});
  const exported=await readFile(path.join(root,'public/data/index.json'),'utf8');
- const stub=path.join(root,'mock.mjs');await writeFile(stub,"const RealDate=Date;globalThis.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-10-10T03:30:00Z']));}static now(){return RealDate.parse('2026-10-10T03:30:00Z');}};globalThis.fetch=async()=>{throw Error('ISOLATED-SECRET');};");
+ const stub=path.join(root,'mock.mjs');await writeFile(stub,"import {readFileSync} from 'node:fs';const published=JSON.parse(readFileSync('public/data/index.json','utf8'));const RealDate=Date;globalThis.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-10-10T03:30:00Z']));}static now(){return RealDate.parse('2026-10-10T03:30:00Z');}};globalThis.fetch=async url=>{if(url.includes('/data/index.json'))return {ok:true,json:async()=>published};throw Error('ISOLATED-SECRET');};");
  const script=fileURLToPath(new URL('../scripts/notify.mjs',import.meta.url));
  const env={...process.env,GITHUB_ACTIONS:'false',GITHUB_EVENT_NAME:'schedule',PUSHPLUS_ENABLED:'true',PUSHPLUS_TEST_CONFIRMED:'true',PUSHPLUS_TOKEN:'ISOLATED-SECRET',MONITOR_ROUND_ID:'r2',MONITOR_MODE:'full',GITHUB_STEP_SUMMARY:''};
  const run=overrides=>execFileSync(process.execPath,['--import',pathToFileURL(stub).href,script],{cwd:root,env:{...env,...overrides},encoding:'utf8'});
@@ -132,4 +132,50 @@ test('automatic CLI respects all gates and preserves history when notification t
  const saved=await readFile(path.join(root,'data/notifications/state.json'),'utf8');assert.ok(!saved.includes(env.PUSHPLUS_TOKEN));
  const message=JSON.parse(saved).messages[0];assert.equal(message.status,'uncertain');assert.match(message.payload.content,/不是本轮实时价格/);
  assert.equal(await readFile(path.join(root,'public/data/index.json'),'utf8'),exported);
+});
+test('published prices and timestamps must exactly match the notification, including failed attempt',async()=>{
+ const records=[quote(),quote(500,'2026-10-10T03:15:00Z','r2')],p=planNotification(args(records));
+ const check=data=>verifyPublishedNotification(p,{fetchImpl:async()=>({ok:true,json:async()=>({schemaVersion:1,generatedAt:now.toISOString(),records:data})})});
+ assert.equal((await check(records)).ready,true);
+ assert.equal((await check([records[0]])).error.code,'publication_not_ready');
+ assert.equal((await check(records.map(r=>({...r,queriedAt:'2026-10-10T00:00:00Z'})))).ready,false);
+ assert.equal((await check(records.map(r=>({...r,lowest:599})))).ready,false);
+ const bad={...quote(null,'2026-10-10T03:20:00Z','r2'),status:'failed'},failedPlan=planNotification(args([quote(),bad],'full'));
+ assert.equal((await verifyPublishedNotification(failedPlan,{fetchImpl:async()=>({ok:true,json:async()=>({schemaVersion:1,records:[quote()]})})})).ready,false);
+});
+test('old or unavailable published page delays notification and saves retry state without sending',async()=>{
+ const s=state();let sends=0;
+ const result=await processNotification({state:s,plan:plan(),enabled:true,now,token:'test',checkpoint:async()=>{},beforeSend:async()=>({ready:false,error:{code:'publication_not_ready'}}),fetchImpl:async()=>{sends++;return accepted();}});
+ assert.equal(result.status,'retry_wait');assert.equal(result.error.code,'publication_not_ready');assert.equal(sends,0);
+ assert.equal(s.messages[0].retryAt,'2026-10-10T03:45:00.000Z');
+});
+test('flight departing during durable checkpoint cannot send or retry a notification',async()=>{
+ const s=state();let allowed=true,sends=0;
+ const result=await processNotification({state:s,plan:plan(),enabled:true,now,token:'test',checkpoint:async()=>{allowed=false;},sendGuard:()=>allowed,fetchImpl:async()=>{sends++;return accepted();}});
+ assert.equal(result.status,'stopped');assert.equal(sends,0);assert.equal(s.messages[0].retryAt,null);
+});
+test('hourly brief and price change merge once, same hour re-run deduplicates, next hour still sends',async()=>{
+ const s=state();let sends=0;
+ const a={state:s,enabled:true,now,token:'test',checkpoint:async()=>{},fetchImpl:async()=>{sends++;return accepted();}};
+ const p=planNotification(args([quote(),quote(500,'2026-10-10T03:15:00Z','r2')],'full'));
+ assert.equal((await processNotification({...a,plan:p})).status,'accepted');
+ assert.equal((await processNotification({...a,plan:{...p,roundId:'rerun'}})).status,'deduplicated');
+ const next=planNotification({...args([quote(),quote(500,'2026-10-10T03:15:00Z','r2')],'full'),now:new Date('2026-10-10T04:30:00Z')});
+ assert.equal((await processNotification({...a,plan:next})).status,'accepted');assert.equal(sends,2);
+});
+test('after-departure CLI blocks hourly, changed-price and queued-retry paths before any fetch',async()=>{
+ const {mkdir,access}=await import('node:fs/promises');
+ for(const mode of ['full','focus']){
+  const root=await mkdtemp(path.join(tmpdir(),'mf8455-stop-cli-'));
+  await appendSnapshot([quote()],root,{roundId:'r1'});await appendSnapshot([quote(500,'2026-10-10T03:15:00Z','r2')],root,{roundId:'r2'});
+  await mkdir(path.join(root,'data/notifications'),{recursive:true});
+  const queued={...plan(),status:'retry_wait',attempts:1,retryAt:'2026-10-10T04:00:00Z'};
+  const stateFile=path.join(root,'data/notifications/state.json');await writeFile(stateFile,JSON.stringify({...state(),lastTestAcceptedAt:now.toISOString(),messages:[queued]}));
+  const before=await readFile(stateFile,'utf8');
+  const stub=path.join(root,'mock.mjs');await writeFile(stub,"import {writeFileSync} from 'node:fs';const RealDate=Date;globalThis.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-10-20T08:35:00Z']));}static now(){return RealDate.parse('2026-10-20T08:35:00Z');}};globalThis.fetch=async()=>{writeFileSync('unexpected-send.txt','FAIL');throw Error('Unexpected network');};");
+  const env={...process.env,GITHUB_ACTIONS:'false',GITHUB_EVENT_NAME:'schedule',PUSHPLUS_ENABLED:'true',PUSHPLUS_TEST_CONFIRMED:'true',PUSHPLUS_TOKEN:'fixture',MONITOR_ROUND_ID:'r2',MONITOR_MODE:mode,GITHUB_STEP_SUMMARY:''};
+  const out=execFileSync(process.execPath,['--import',pathToFileURL(stub).href,fileURLToPath(new URL('../scripts/notify.mjs',import.meta.url))],{cwd:root,env,encoding:'utf8'});
+  assert.match(out,/stopped_or_no_round/);await assert.rejects(access(path.join(root,'unexpected-send.txt')));
+  assert.equal(await readFile(stateFile,'utf8'),before);
+ }
 });

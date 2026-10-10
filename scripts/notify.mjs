@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {config} from '../config.mjs';
 import {shouldQuery} from '../lib/store.mjs';
-import {planNotification,processNotification} from '../lib/pushplus.mjs';
+import {planNotification,processNotification,verifyPublishedNotification} from '../lib/pushplus.mjs';
 
 const test=process.argv.includes('--test'),statePath='data/notifications/state.json';
 const env=process.env,now=new Date();
@@ -34,7 +34,7 @@ try{
    };
    if(test&&!env.GITHUB_RUN_ID)throw Error('Test requires a unique GitHub Actions run id');
    const plan=planNotification({records,roundId:env.MONITOR_ROUND_ID,mode:env.MONITOR_MODE,now,testId:test?env.GITHUB_RUN_ID:null});
-   outcome=await processNotification({state,plan,enabled:true,now,token:env.PUSHPLUS_TOKEN,checkpoint});
+   outcome=await processNotification({state,plan,enabled:true,now,token:env.PUSHPLUS_TOKEN,checkpoint,beforeSend:test?undefined:item=>verifyPublishedNotification(item),sendGuard:()=>test||shouldQuery(config.focusDate,records,new Date())});
    // Also save recovered interrupted states when no new message is due.
    await checkpoint(state);
   }

@@ -51,6 +51,8 @@ jobs:
     timeout-minutes: 20
     outputs:
       active: ${{ steps.window.outputs.active }}
+      round_id: ${{ steps.collect.outputs.round_id }}
+      mode: ${{ steps.collect.outputs.mode }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,16 +92,6 @@ jobs:
             git commit -m "Record official flight fare observations"
             git push origin HEAD:main
           fi
-      - name: Notify focus fare (isolated from collection and Pages)
-        if: steps.window.outputs.active == 'true' && github.event_name == 'schedule'
-        continue-on-error: true
-        env:
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-          PUSHPLUS_ENABLED: ${{ vars.PUSHPLUS_ENABLED }}
-          PUSHPLUS_TEST_CONFIRMED: ${{ vars.PUSHPLUS_TEST_CONFIRMED }}
-          MONITOR_ROUND_ID: ${{ steps.collect.outputs.round_id }}
-          MONITOR_MODE: ${{ steps.collect.outputs.mode }}
-        run: node scripts/notify.mjs
       - name: Save diagnostic evidence
         if: always() && github.event_name != 'push'
         uses: actions/upload-artifact@v4
@@ -126,3 +118,30 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+  notify:
+    needs: [collect-and-build, deploy]
+    if: github.event_name == 'schedule' && needs.deploy.result == 'success' && needs.collect-and-build.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Configure notification state persistence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Notify only after the matching data is published
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSHPLUS_ENABLED: ${{ vars.PUSHPLUS_ENABLED }}
+          PUSHPLUS_TEST_CONFIRMED: ${{ vars.PUSHPLUS_TEST_CONFIRMED }}
+          MONITOR_ROUND_ID: ${{ needs.collect-and-build.outputs.round_id }}
+          MONITOR_MODE: ${{ needs.collect-and-build.outputs.mode }}
+        run: node scripts/notify.mjs
