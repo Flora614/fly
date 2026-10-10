@@ -1,0 +1,53 @@
+{
+  "roundId": "dd8f0652-fd29-4120-a436-a091c2462036",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "c7e64342-83fc-4770-85d7-d649cc3ea4c9",
+  "createdAt": "2026-10-10T05:20:41.788Z",
+  "records": [
+    {
+      "date": "2026-10-10",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-10T05:20:33.780Z",
+      "status": "success",
+      "lowest": 2100,
+      "zPrice": null,
+      "departureAt": "2026-10-10T16:35:00+08:00",
+      "arrivalTime": "19:45",
+      "inventory": "未展示Z舱，不推断为售罄",
+      "cabins": [
+        {
+          "code": "Y",
+          "price": 2110,
+          "inventory": "仅剩3张"
+        },
+        {
+          "code": "H",
+          "price": 2100,
+          "inventory": "仅剩3张"
+        }
+      ],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-10&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": null,
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "c844f7c3-6bf9-494d-b2ed-00fe2ae7c663",
+      "changes": []
+    }
+  ]
+}
