@@ -118,7 +118,7 @@ test('automatic CLI respects all gates and preserves history when notification t
  await appendSnapshot([quote()],root,{roundId:'r1'});
  await appendSnapshot([{...quote(null,'2026-10-10T03:15:00Z','r2'),status:'failed'}],root,{roundId:'r2'});
  const exported=await readFile(path.join(root,'public/data/index.json'),'utf8');
- const stub=path.join(root,'mock.mjs');await writeFile(stub,"globalThis.fetch=async()=>{throw Error('ISOLATED-SECRET');};");
+ const stub=path.join(root,'mock.mjs');await writeFile(stub,"const RealDate=Date;globalThis.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-10-10T03:30:00Z']));}static now(){return RealDate.parse('2026-10-10T03:30:00Z');}};globalThis.fetch=async()=>{throw Error('ISOLATED-SECRET');};");
  const script=fileURLToPath(new URL('../scripts/notify.mjs',import.meta.url));
  const env={...process.env,GITHUB_ACTIONS:'false',GITHUB_EVENT_NAME:'schedule',PUSHPLUS_ENABLED:'true',PUSHPLUS_TEST_CONFIRMED:'true',PUSHPLUS_TOKEN:'ISOLATED-SECRET',MONITOR_ROUND_ID:'r2',MONITOR_MODE:'full',GITHUB_STEP_SUMMARY:''};
  const run=overrides=>execFileSync(process.execPath,['--import',pathToFileURL(stub).href,script],{cwd:root,env:{...env,...overrides},encoding:'utf8'});
