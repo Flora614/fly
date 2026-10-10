@@ -12,12 +12,13 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-10T03:24:35.858Z",
       "retryAt": null,
       "error": null,
       "updatedAt": "2026-10-10T03:24:35.858Z"
     }
-  ]
+  ],
+  "lastTestAcceptedAt": "2026-10-10T03:24:35.858Z"
 }
