@@ -17,7 +17,7 @@ const state=()=>({schemaVersion:1,messages:[]});
 const accepted=async()=>({ok:true,json:async()=>({code:200,data:'fixture-only-receipt'})});
 
 test('one merged low-price notice includes both changes, old/new, two-person estimate and page',()=>{
- const p=plan();assert.equal(p.kind,'change');assert.match(p.payload.title,/低于550/);
+ const p=plan();assert.equal(p.kind,'change');assert.equal(p.payload.title,'【低于550元】目前最低价500元/人，有变动');
  assert.match(p.payload.content,/¥600 → ¥500/);assert.match(p.payload.content,/两人合计估算 -200 元/);
  assert.match(p.payload.content,/最低价变化/);assert.match(p.payload.content,/Z舱变化/);
  assert.ok(p.payload.content.includes(PAGE_URL));assert.match(p.payload.content,/Asia\/Shanghai/);
@@ -25,16 +25,18 @@ test('one merged low-price notice includes both changes, old/new, two-person est
 test('unchanged focus has no extra notice; hourly brief remains, including strict 550 threshold',()=>{
  const records=[quote(550),quote(550,'2026-10-10T03:15:00Z','r2')];
  assert.equal(planNotification(args(records)),null);
- const p=planNotification(args(records,'full'));assert.equal(p.kind,'hourly');assert.match(p.payload.content,/价格未变化/);assert.doesNotMatch(p.payload.title,/低于550/);
+ const p=planNotification(args(records,'full'));assert.equal(p.kind,'hourly');assert.match(p.payload.content,/价格未变化/);assert.equal(p.payload.title,'目前最低价550元/人，无变动');
  assert.equal(hourKey(new Date('2026-10-10T16:30:00Z')),'2026-10-11 00');
 });
 test('failed query never becomes a change or sold-out notice; hourly uses timestamped history',()=>{
  const bad={...quote(null,'2026-10-10T03:15:00Z','r2'),status:'failed'};
  assert.equal(planNotification(args([quote(),bad])),null);
  const p=planNotification(args([quote(),bad],'full'));
+ assert.equal(p.payload.title,'最新有效最低价600元/人，本轮查询失败，变动未知');
  assert.match(p.payload.content,/不是本轮实时价格/);assert.match(p.payload.content,/最新有效报价时间/);
  assert.match(p.payload.content,/¥600\/人/);assert.doesNotMatch(p.payload.content,/售罄|¥null|¥0/);
  const empty=planNotification(args([bad],'full'));assert.match(empty.payload.content,/没有有效自动报价/);
+ assert.equal(empty.payload.title,'暂无有效报价，本轮查询失败，变动未知');
 });
 test('ignore manual prices, missing Z and tax basis changes',()=>{
  const first=quote();const next={...quote(600,'2026-10-10T03:15:00Z','r2'),zPrice:null};
