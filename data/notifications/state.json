@@ -910,7 +910,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-11T05:24:01.016Z",
       "retryAt": null,
