@@ -120,7 +120,9 @@ jobs:
         uses: actions/deploy-pages@v4
   notify:
     needs: [collect-and-build, deploy]
-    if: github.event_name == 'schedule' && needs.deploy.result == 'success' && needs.collect-and-build.outputs.active == 'true'
+    # Persist a deferred brief even if Pages fails. notify.mjs verifies the exact
+    # published quote before sending and retries on a later scheduled round.
+    if: always() && github.event_name == 'schedule' && needs.collect-and-build.result == 'success' && needs.collect-and-build.outputs.active == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: true
@@ -137,7 +139,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - name: Notify only after the matching data is published
+      - name: Send published fares or persist a deferred notification
         env:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           PUSHPLUS_ENABLED: ${{ vars.PUSHPLUS_ENABLED }}
