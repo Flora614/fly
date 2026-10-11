@@ -1378,7 +1378,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-11T18:25:47.517Z",
       "retryAt": null,
