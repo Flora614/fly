@@ -1,0 +1,125 @@
+{
+  "roundId": "40432794-e595-4df8-a44e-6a13f2b3499f",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "33ba916e-2384-493b-a989-9b62523594ec",
+  "createdAt": "2026-10-11T11:20:22.343Z",
+  "records": [
+    {
+      "date": "2026-10-14",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-11T11:20:14.271Z",
+      "status": "success",
+      "lowest": 454,
+      "zPrice": 454,
+      "departureAt": "2026-10-14T16:35:00+08:00",
+      "arrivalTime": "19:45",
+      "inventory": "余票充足",
+      "cabins": [
+        {
+          "code": "U",
+          "price": 740,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "Z",
+          "price": 454,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "R",
+          "price": 910,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "T",
+          "price": 1030,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "V",
+          "price": 1140,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "Q",
+          "price": 1350,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "N",
+          "price": 1460,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "K",
+          "price": 1560,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "L",
+          "price": 1670,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "M",
+          "price": 1770,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "B",
+          "price": 1980,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "H",
+          "price": 2100,
+          "inventory": "余票充足"
+        },
+        {
+          "code": "Y",
+          "price": 2110,
+          "inventory": "余票充足"
+        }
+      ],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-14&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": null,
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "ed2a507e-ffe4-4e29-996b-9017aa84bc21",
+      "changes": [
+        {
+          "metric": "lowest",
+          "old": 450,
+          "new": 454,
+          "difference": 4,
+          "differenceForTwoEstimate": 8,
+          "previousAt": "2026-10-11T10:21:16.003Z"
+        },
+        {
+          "metric": "zPrice",
+          "old": 450,
+          "new": 454,
+          "difference": 4,
+          "differenceForTwoEstimate": 8,
+          "previousAt": "2026-10-11T10:21:16.003Z"
+        }
+      ]
+    }
+  ]
+}
