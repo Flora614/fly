@@ -1162,7 +1162,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-11T12:28:24.022Z",
       "retryAt": null,
