@@ -1,0 +1,88 @@
+{
+  "roundId": "eedfd530-8e3c-427c-9659-d644838eb43e",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "478523d7-4553-4885-adc6-93d53b433c0a",
+  "createdAt": "2026-10-11T02:20:56.057Z",
+  "records": [
+    {
+      "date": "2026-10-11",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-11T02:20:48.011Z",
+      "status": "success",
+      "lowest": 1140,
+      "zPrice": null,
+      "departureAt": "2026-10-11T16:35:00+08:00",
+      "arrivalTime": "19:45",
+      "inventory": "未展示Z舱，不推断为售罄",
+      "cabins": [
+        {
+          "code": "Q",
+          "price": 1350,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "V",
+          "price": 1140,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "N",
+          "price": 1460,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "K",
+          "price": 1560,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "L",
+          "price": 1670,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "M",
+          "price": 1770,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "B",
+          "price": 1980,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "H",
+          "price": 2100,
+          "inventory": "仅剩2张"
+        },
+        {
+          "code": "Y",
+          "price": 2110,
+          "inventory": "仅剩2张"
+        }
+      ],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-11&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": null,
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "eda9e14c-115d-4d9e-8a7e-4fe7021d1913",
+      "changes": []
+    }
+  ]
+}
