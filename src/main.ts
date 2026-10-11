@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import {differenceFromBaseline} from './price-baseline';
+import {displayBaseline,differenceFromBaseline} from './price-baseline';
 import './style.css';
 type Change={metric:'lowest'|'zPrice';old:number;new:number;difference:number;differenceForTwoEstimate:number;previousAt:string};
 type Entry={id:string;date:string;queriedAt:string;status:'success'|'failed'|'departed'|'not_found';lowest:number|null;zPrice:number|null;inventory:string;departureAt:string|null;taxBasis:string;priceScope:string;source:{name:string;url:string;kind:string;note?:string};changes:Change[];error?:{message:string}};
@@ -13,7 +13,6 @@ const esc=(s:unknown)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 const labels={success:'查询成功',failed:'查询失败',departed:'已过起飞时间',not_found:'未显示此航班'};
 function rows(date?:string){return data.records.filter(r=>(!date||r.date===date)&&r.source.kind===source&&(!before||Date.parse(r.queriedAt)<=Date.parse(before))).sort((a,b)=>Date.parse(a.queriedAt)-Date.parse(b.queriedAt));}
 function last(date:string,success=false){return rows(date).filter(r=>!success||r.status==='success').at(-1);}
-function delta(r:Entry|undefined,metric:'lowest'|'zPrice'){const c=r?.changes.find(c=>c.metric===metric);return !c?'<span class="muted">—</span>':'<span class="'+(c.difference<0?'down':'up')+'">'+(c.difference>0?'+':'−')+'¥'+Math.abs(c.difference)+'</span>';}
 function baselineDelta(r:Entry|undefined,metric:'lowest'|'zPrice'){
  const n=differenceFromBaseline(r,metric);
  if(n===null)return '<span class="muted">—</span>';
@@ -24,15 +23,15 @@ function render(){
  chart?.destroy();
  const f=last(data.config.focusDate,true),attempt=last(data.config.focusDate),now=before?Date.parse(before):Date.now(),price=f?.zPrice;
  const ended=now>=Date.parse(f?.departureAt||data.config.focusDeparture),stale=f&&now-Date.parse(f.queriedAt)>35*60000;
- const changeRecord=rows(data.config.focusDate).filter(r=>r.status==='success'&&r.changes.some(c=>c.metric==='zPrice')).at(-1);
- const c=changeRecord?.changes.find(c=>c.metric==='zPrice'),valid=rows().filter(r=>r.status==='success').at(-1);
+ const base=displayBaseline.quotes.find(r=>r.date===data.config.focusDate),difference=differenceFromBaseline(f,'zPrice');
+ const valid=rows().filter(r=>r.status==='success').at(-1);
  const badge=before?'历史快照':ended?'已过起飞时间':attempt&&attempt.status!=='success'?labels[attempt.status]:f?stale?'记录待更新':'最近成功报价':'等待报价';
  app.innerHTML=`<main><header><a class="brand" href="./"><span class="brand-mark">↗</span>去成都</a><span class="tag">MF8455</span></header>
  <section class="intro"><p class="eyebrow">一段旅程，从好价格开始</p><h1>福州 <span class="arrow">→</span> 成都</h1><p class="route">长乐 FOC <span>直飞</span> 天府 TFU</p></section>
  <section class="hero card"><div class="between"><div><p class="eyebrow blue">重点关注</p><h2>10 月 20 日 <span>星期二</span></h2></div><span class="pill">${badge}</span></div>
  <div class="hero-price"><span>${money(price)}</span><small>/ 人</small></div><p class="fare-label">经济舱 Z 舱 · 官网展示票价</p>
- <div class="hero-grid"><div><span>两人票价估算</span><strong>${money(typeof price==='number'?price*2:null)}</strong></div><div><span>上次 Z 舱变化</span><strong>${delta(changeRecord,'zPrice')}</strong></div><div><span>Z 舱库存</span><strong class="inventory">${esc(f?.inventory||'未查询')}</strong></div></div>
- ${c?`<p class="change-line">${money(c.old)} → ${money(c.new)}，两人估算差额 ${c.differenceForTwoEstimate>0?'+':'−'}¥${Math.abs(c.differenceForTwoEstimate)} · 对比 ${time(c.previousAt)}</p>`:''}
+ <div class="hero-grid"><div><span>两人票价估算</span><strong>${money(typeof price==='number'?price*2:null)}</strong></div><div><span>较截图基准</span><strong>${baselineDelta(f,'zPrice')}</strong></div><div><span>Z 舱库存</span><strong class="inventory">${esc(f?.inventory||'未查询')}</strong></div></div>
+ ${difference!==null&&base?`<p class="change-line">固定截图基准 Z 舱 ${money(base.zPrice)} → ${money(price)}，两人估算差额 ${difference===0?'¥0':(difference>0?'+':'−')+'¥'+Math.abs(difference*2)} · 基准 ${time(base.queriedAt)}（固定）</p>`:''}
  ${typeof price==='number'&&price<550?'<p class="deal">低于 ¥550 / 人，值得留意这个价格。</p>':''}
  <p class="footnote">仅记录官网公开展示价格；两人合计为乘 2 估算，未验证同价购买。${f?.taxBasis==='included'?'来源标注含税。':f?.taxBasis==='excluded'?'来源标注不含税，税费另计。':'官网此页未明确税费口径，最终总价未确认。'}</p>
  <div class="source-line"><span>${f?`成功于 ${time(f.queriedAt)} · ${esc(f.source.name)}${f.source.kind==='manual'?' · 手动导入':''}`:'尚无成功记录'}</span>${f?`<a href="${esc(f.source.url)}" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>`:''}</div>
@@ -45,7 +44,7 @@ function render(){
  return `<tr class="${d===data.config.focusDate?'focus-row':''} ${d===selected?'selected':''}"><td><button class="date-button" data-date="${d}" aria-pressed="${d===selected}"><b>${d.slice(5).replace('-','.')}</b><span>${weekday(d)}${d===data.config.focusDate?' · 关注':''}</span></button><small class="row-status">${state}</small></td><td>${money(r?.lowest)}</td><td>${money(r?.zPrice)}</td><td>${baselineDelta(r,'lowest')} / ${baselineDelta(r,'zPrice')}</td></tr>`;
  }).join('')}</tbody></table></div></section>
  <section class="card chart-card"><div class="section-heading"><div><p class="eyebrow">每一次查价，都留个记录</p><h2>${selected.slice(5).replace('-',' 月 ')} 日价格走势</h2></div><select id="date-select" aria-label="历史走势日期">${data.dates.map(d=>`<option value="${d}" ${d===selected?'selected':''}>${d.slice(5)} ${weekday(d)}</option>`).join('')}</select></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="最低价和Z舱历史折线图"></canvas></div><p id="chart-note" class="footnote"></p></section>
- <section class="card log-card"><div class="section-heading"><h2>查询记录</h2><span class="muted">${selected}</span></div>${rows(selected).slice().reverse().slice(0,40).map(r=>`<details><summary><span class="log-dot ${r.status}"></span><span>${time(r.queriedAt)}</span><b>${labels[r.status]}</b><span>${r.status==='success'?money(r.zPrice):'—'}</span></summary><p>${esc(r.source.name)} · ${r.source.kind==='manual'?'手动导入':'自动查询'} · ${esc(r.inventory)}</p><p>最低价 ${money(r.lowest)} / Z 舱 ${money(r.zPrice)} · 税费 ${r.taxBasis==='unknown'?'未确认':r.taxBasis==='included'?'含税':'不含税'}</p>${r.error?`<p class="error-note">${esc(r.error.message)}</p>`:''}${r.source.note?`<p>${esc(r.source.note)}</p>`:''}<a href="${esc(r.source.url)}" target="_blank" rel="noopener noreferrer">原始查询来源 ↗</a></details>`).join('')||'<p class="empty">还没有这个日期的记录。失败记录也会如实保留。</p>'}</section>
+ <section class="card log-card"><div class="section-heading"><h2>查询记录</h2><span class="muted">${selected}</span></div>${rows(selected).slice().reverse().slice(0,40).map(r=>`<details><summary><span class="log-dot ${r.status}"></span><span>${time(r.queriedAt)}</span><b>${labels[r.status]}</b><span>${r.status==='success'?money(r.zPrice):'—'}</span></summary><p>${esc(r.source.name)} · ${r.source.kind==='manual'?'手动导入':'自动查询'} · ${esc(r.inventory)}</p><p>较固定截图基准：最低 ${baselineDelta(r,'lowest')} / Z 舱 ${baselineDelta(r,'zPrice')}</p><p>最低价 ${money(r.lowest)} / Z 舱 ${money(r.zPrice)} · 税费 ${r.taxBasis==='unknown'?'未确认':r.taxBasis==='included'?'含税':'不含税'}</p>${r.error?`<p class="error-note">${esc(r.error.message)}</p>`:''}${r.source.note?`<p>${esc(r.source.note)}</p>`:''}<a href="${esc(r.source.url)}" target="_blank" rel="noopener noreferrer">原始查询来源 ↗</a></details>`).join('')||'<p class="empty">还没有这个日期的记录。失败记录也会如实保留。</p>'}</section>
  <footer><p>时间统一为北京时间 · Asia/Shanghai</p><p>${valid?`最近成功查询 ${time(valid.queriedAt)} · ${esc(valid.source.name)}`:'暂无成功查询'}<br>页面数据生成 ${time(data.generatedAt)}</p><p>计划频率：全日期每小时，20 日每 15 分钟。调度可能延迟。<br>${data.lastScheduledRunAt?'最近自动调度 '+time(data.lastScheduledRunAt):'云端定时执行尚无运行记录'} · <a href="https://github.com/Flora614/fly/actions" target="_blank" rel="noopener noreferrer">查看运行状态</a><br>历史记录保留；微信通知由独立开关控制，状态见 Actions。不会自动购票。</p><button id="refresh" class="refresh">刷新已保存记录 ↻</button><a class="download" href="./data/index.json" download>下载历史 JSON</a></footer></main>`;
  document.querySelector<HTMLSelectElement>('#source')!.onchange=e=>{source=(e.target as HTMLSelectElement).value;render();};
  document.querySelector<HTMLSelectElement>('#snapshot')!.onchange=e=>{before=(e.target as HTMLSelectElement).value;render();};
