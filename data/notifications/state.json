@@ -1666,7 +1666,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-12T02:26:01.549Z",
       "retryAt": null,
