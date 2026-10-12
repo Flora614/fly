@@ -1,0 +1,46 @@
+{
+  "roundId": "b66e73a6-689c-4d34-b291-e6748d60d82e",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "34ead906-1da0-49e1-8fec-d9b777f321d9",
+  "createdAt": "2026-10-12T07:29:36.072Z",
+  "records": [
+    {
+      "date": "2026-10-16",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-12T07:28:22.939Z",
+      "status": "failed",
+      "lowest": null,
+      "zPrice": null,
+      "departureAt": null,
+      "arrivalTime": null,
+      "inventory": "unknown",
+      "cabins": [],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-16&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": {
+        "code": "page_error",
+        "message": "page.goto: Timeout 45000ms exceeded.\nCall log:\n  - navigating to \"https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-16&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat\", waiting until \"domcontentloaded\"\n",
+        "at": "2026-10-12T07:29:07.972Z"
+      },
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "4cc8f404-08fe-49b4-8a7d-15cbf4906bc0",
+      "changes": []
+    }
+  ]
+}

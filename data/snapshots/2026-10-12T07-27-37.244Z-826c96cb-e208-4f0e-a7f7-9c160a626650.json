@@ -1,0 +1,83 @@
+{
+  "roundId": "b66e73a6-689c-4d34-b291-e6748d60d82e",
+  "mode": "full",
+  "transport": "playwright",
+  "runner": "github-actions",
+  "trigger": "schedule",
+  "pushesEnabled": false,
+  "schemaVersion": 1,
+  "id": "826c96cb-e208-4f0e-a7f7-9c160a626650",
+  "createdAt": "2026-10-12T07:27:37.244Z",
+  "records": [
+    {
+      "date": "2026-10-12",
+      "flight": "MF8455",
+      "origin": "FOC",
+      "destination": "TFU",
+      "queriedAt": "2026-10-12T07:27:29.121Z",
+      "status": "success",
+      "lowest": 1266,
+      "zPrice": null,
+      "departureAt": "2026-10-12T16:35:00+08:00",
+      "arrivalTime": "19:45",
+      "inventory": "未展示Z舱，不推断为售罄",
+      "cabins": [
+        {
+          "code": "N",
+          "price": 1460,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "Q",
+          "price": 1266,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "K",
+          "price": 1560,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "L",
+          "price": 1670,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "M",
+          "price": 1770,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "B",
+          "price": 1980,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "H",
+          "price": 2100,
+          "inventory": "仅剩4张"
+        },
+        {
+          "code": "Y",
+          "price": 2110,
+          "inventory": "仅剩4张"
+        }
+      ],
+      "source": {
+        "name": "厦航官网",
+        "url": "https://www.xiamenair.com/zh-cn/nticket.html?tripType=OW&orgCodeArr%5B0%5D=FOC&dstCodeArr%5B0%5D=TFU&orgDateArr%5B0%5D=2026-10-12&dstDate=&isInter=false&adtNum=2&chdNum=0&infNum=0&JFCabinFirst=false&acntCd=&mode=Money&partner=false&jcgm=false&paxType=&isPet=false&petType=noseat",
+        "kind": "automatic"
+      },
+      "priceScope": "official_display_per_adult",
+      "currency": "CNY",
+      "taxBasis": "unknown",
+      "taxPerAdult": null,
+      "partyPriceVerified": false,
+      "requestedAdults": 2,
+      "error": null,
+      "evidenceWarning": "page.screenshot: Timeout 8000ms exceeded.",
+      "id": "10ee2b51-0d54-4b9c-9482-3178ca50864b",
+      "changes": []
+    }
+  ]
+}
