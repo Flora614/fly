@@ -1882,7 +1882,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-12T10:41:26.548Z",
       "retryAt": null,
