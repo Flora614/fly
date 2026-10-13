@@ -2034,6 +2034,42 @@
       "updatedAt": "2026-10-13T07:41:02.757Z",
       "publicationVerifiedAt": "2026-10-13T07:41:03.864Z",
       "publishedDataGeneratedAt": "2026-10-13T07:40:31.553Z"
+    },
+    {
+      "key": "hourly:2026-10-13 23",
+      "kind": "hourly",
+      "roundId": "96f50e49-7274-4a6f-9c3b-0fb8919bcf0b",
+      "quoteAt": "2026-10-13T15:53:07.911Z",
+      "publication": {
+        "quote": {
+          "id": "107e2e74-d62e-4eea-be1a-f4e8a5792f86",
+          "date": "2026-10-20",
+          "queriedAt": "2026-10-13T15:53:07.911Z",
+          "lowest": 550,
+          "zPrice": 550,
+          "taxBasis": "unknown"
+        },
+        "attempt": {
+          "id": "107e2e74-d62e-4eea-be1a-f4e8a5792f86",
+          "date": "2026-10-20",
+          "queriedAt": "2026-10-13T15:53:07.911Z",
+          "status": "success"
+        }
+      },
+      "payload": {
+        "title": "目前最低价550元/人，较截图基准降50元",
+        "content": "<h2>目前最低价550元/人，较截图基准降50元</h2>\n<p>福州长乐 FOC → 成都天府 TFU · 2026-10-20</p>\n<p>最低票价：<strong>¥550/人</strong><br>Z舱价格：<strong>¥550/人</strong><br>两人票价估算：最低 ¥1100；Z舱 ¥1100<br>库存：余票充足</p>\n<p>查询时间：2026/10/13 23:53:07（Asia/Shanghai）<br>来源：厦航官网</p>\n<p><strong>固定截图基准：2026/10/10 23:19–23:21（Asia/Shanghai），不会随查询改变。</strong></p>\n<p>最低价较截图基准：¥600 → ¥550，每人 -50 元，两人合计估算 -100 元。</p>\n<p>Z舱较截图基准：¥600 → ¥550，每人 -50 元，两人合计估算 -100 元。</p>\n<p>与上次同来源、同税费口径有效报价相比：可比较价格未变化。缺失舱位不推断涨跌。</p>\n<p>税费口径：官网未明确。两人金额仅为票价乘2估算，未验证同时购买最终总价。</p>\n<p>消息生成时间：2026/10/13 23:55:44（Asia/Shanghai）</p><p><a href=\"https://flora614.github.io/fly/\">查看专属价格监控网页与历史记录</a></p>",
+        "template": "html",
+        "channel": "wechat"
+      },
+      "status": "sending",
+      "attempts": 1,
+      "createdAt": "2026-10-13T15:55:44.825Z",
+      "retryAt": null,
+      "error": null,
+      "updatedAt": "2026-10-13T15:55:44.825Z",
+      "publicationVerifiedAt": "2026-10-13T15:55:45.167Z",
+      "publishedDataGeneratedAt": "2026-10-13T15:54:50.721Z"
     }
   ],
   "lastTestAcceptedAt": "2026-10-10T03:24:35.858Z"
