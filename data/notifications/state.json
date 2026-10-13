@@ -1954,7 +1954,7 @@
         "template": "html",
         "channel": "wechat"
       },
-      "status": "sending",
+      "status": "accepted",
       "attempts": 1,
       "createdAt": "2026-10-13T00:35:45.608Z",
       "retryAt": null,
